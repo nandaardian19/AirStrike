@@ -1,0 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #333;
+}
+
+#gameArea {
+    width: 400px;
+    height: 600px;
+    background-color: #000;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #fff;
+}
+
+#player {
+    width: 40px;
+    height: 40px;
+    background-image: url('airplane_11532188.png');
+    background-size: cover;
+    position: absolute;
+    bottom: 10px;
+    left: 180px;
+}
+
+.bullet {
+    width: 5px;
+    height: 10px;
+    background-image: url('war_13683222.png');
+    background-size: cover;
+    position: absolute;
+}
+
+.enemy {
+    width: 40px;
+    height: 40px;
+    background-image: url('plane_4110419.png');
+    background-size: cover;
+    position: absolute;
+}
+
+#scoreBoard {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 8px 15px;
+    color: #fff;
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    font-weight: bold;
+}
+#pauseButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 15px;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+    background-color: #ff5722;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+#pauseButton:focus {
+    outline: none;
+}
+
