@@ -2,6 +2,7 @@ const gameArea = document.getElementById("gameArea");
 const player = document.getElementById("player");
 const scoreDisplay = document.getElementById("score");
 const pauseButton = document.getElementById("pauseButton");
+const quitButton = document.getElementById("quitButton");
 
 let playerPositionX = 180;
 let playerPositionY = 500;
@@ -12,6 +13,7 @@ let isGameOver = false;
 let isPaused = false;
 
 pauseButton.addEventListener("click", togglePause);
+quitButton.addEventListener("click", quitGame);
 
 document.addEventListener("keydown", (e) => {
     if (isGameOver || isPaused) return;
@@ -36,6 +38,27 @@ function togglePause() {
     if (!isPaused) {
         gameLoop();
     }
+}
+
+function quitGame() {
+    isGameOver = true;
+    alert("Game Quit! Your final score: " + score);
+    resetGame();
+}
+
+function resetGame() {
+    bullets.forEach(bullet => bullet.remove());
+    enemies.forEach(enemy => enemy.remove());
+    bullets = [];
+    enemies = [];
+    score = 0;
+    scoreDisplay.innerText = score;
+    playerPositionX = 180;
+    playerPositionY = 500;
+    updatePlayerPosition();
+    isGameOver = false;
+    isPaused = false;
+    pauseButton.innerText = "Pause";
 }
 
 function updatePlayerPosition() {
@@ -122,18 +145,7 @@ function checkCollisions() {
 function gameOver() {
     isGameOver = true;
     alert("Game Over! Your Score: " + score);
-    bullets.forEach(bullet => bullet.remove());
-    enemies.forEach(enemy => enemy.remove());
-    bullets = [];
-    enemies = [];
-    score = 0;
-    scoreDisplay.innerText = score;
-    playerPositionX = 180;
-    playerPositionY = 500;
-    updatePlayerPosition();
-    isGameOver = false;
-    isPaused = false;
-    pauseButton.innerText = "Pause";
+    resetGame();
 }
 
 function gameLoop() {
