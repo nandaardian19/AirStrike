@@ -12,24 +12,27 @@ let score = 0;
 let isGameOver = false;
 let isPaused = false;
 
+// Variables for smooth movement
+let keysPressed = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
+let moveSpeed = 3;
+
 pauseButton.addEventListener("click", togglePause);
 quitButton.addEventListener("click", quitGame);
 
 document.addEventListener("keydown", (e) => {
     if (isGameOver || isPaused) return;
-
-    if (e.key === "ArrowLeft" && playerPositionX > 0) {
-        playerPositionX -= 20;
-    } else if (e.key === "ArrowRight" && playerPositionX < 360) {
-        playerPositionX += 20;
-    } else if (e.key === "ArrowUp" && playerPositionY > 0) {
-        playerPositionY -= 20;
-    } else if (e.key === "ArrowDown" && playerPositionY < 560) {
-        playerPositionY += 20;
-    } else if (e.key === " ") {
+    if (e.key in keysPressed) {
+        keysPressed[e.key] = true;
+    }
+    if (e.key === " ") {
         shootBullet();
     }
-    updatePlayerPosition();
+});
+
+document.addEventListener("keyup", (e) => {
+    if (e.key in keysPressed) {
+        keysPressed[e.key] = false;
+    }
 });
 
 function togglePause() {
@@ -142,6 +145,22 @@ function checkCollisions() {
     });
 }
 
+function movePlayer() {
+    if (keysPressed.ArrowLeft && playerPositionX > 0) {
+        playerPositionX -= moveSpeed;
+    }
+    if (keysPressed.ArrowRight && playerPositionX < 360) {
+        playerPositionX += moveSpeed;
+    }
+    if (keysPressed.ArrowUp && playerPositionY > 0) {
+        playerPositionY -= moveSpeed;
+    }
+    if (keysPressed.ArrowDown && playerPositionY < 560) {
+        playerPositionY += moveSpeed;
+    }
+    updatePlayerPosition();
+}
+
 function gameOver() {
     isGameOver = true;
     alert("Game Over! Your Score: " + score);
@@ -150,6 +169,7 @@ function gameOver() {
 
 function gameLoop() {
     if (!isGameOver && !isPaused) {
+        movePlayer();
         moveBullets();
         moveEnemies();
         checkCollisions();
