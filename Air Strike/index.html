@@ -7,8 +7,17 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="gameArea">
-        <div id="player"></div>
+    <!-- Menu Screen -->
+    <div id="menuScreen">
+        <h1>Air Strike Game</h1>
+        <button id="singlePlayerBtn">Single Player</button>
+        <button id="multiPlayerBtn">Multiplayer</button>
+    </div>
+    
+    <!-- Game Area -->
+    <div id="gameArea" style="display: none;">
+        <div id="player1" class="player"></div>
+        <div id="player2" class="player" style="display: none;"></div>
         <div id="scoreBoard">Score: <span id="score">0</span></div>
         <button id="pauseButton">Pause</button>
         <button id="quitButton">Quit</button>
@@ -16,5 +25,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
