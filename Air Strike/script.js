@@ -1,184 +1,209 @@
 const gameArea = document.getElementById("gameArea");
-const player = document.getElementById("player");
+const player1 = document.getElementById("player1");
+const player2 = document.getElementById("player2");
 const scoreDisplay = document.getElementById("score");
 const pauseButton = document.getElementById("pauseButton");
 const quitButton = document.getElementById("quitButton");
+const menuScreen = document.getElementById("menuScreen");
+const singlePlayerBtn = document.getElementById("singlePlayerBtn");
+const multiPlayerBtn = document.getElementById("multiPlayerBtn");
 
-let playerPositionX = 180;
-let playerPositionY = 500;
-let bullets = [];
-let enemies = [];
-let score = 0;
 let isGameOver = false;
 let isPaused = false;
+let isMultiplayer = false;
+let score = 0;
+let bullets = [];
+let enemies = [];
+let enemyInterval;
+let gameLoopInterval;
 
-// Variables for smooth movement
-let keysPressed = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
-let moveSpeed = 3;
+// Player positions
+let player1Position = { x: 180, y: 500 };
+let player2Position = { x: 220, y: 500 };
 
+// Event listeners for menu selection
+singlePlayerBtn.addEventListener("click", startSinglePlayer);
+multiPlayerBtn.addEventListener("click", startMultiplayer);
+
+// Button listeners for pause and quit
 pauseButton.addEventListener("click", togglePause);
 quitButton.addEventListener("click", quitGame);
 
-document.addEventListener("keydown", (e) => {
-    if (isGameOver || isPaused) return;
-    if (e.key in keysPressed) {
-        keysPressed[e.key] = true;
-    }
-    if (e.key === " ") {
-        shootBullet();
-    }
-});
-
-document.addEventListener("keyup", (e) => {
-    if (e.key in keysPressed) {
-        keysPressed[e.key] = false;
-    }
-});
-
-function togglePause() {
-    isPaused = !isPaused;
-    pauseButton.innerText = isPaused ? "Resume" : "Pause";
-    if (!isPaused) {
-        gameLoop();
-    }
+// Initialize the game in single or multiplayer mode
+function startSinglePlayer() {
+    isMultiplayer = false;
+    menuScreen.style.display = "none";
+    gameArea.style.display = "block";
+    player2.style.display = "none"; // Hide second player
+    startGame();
 }
 
-function quitGame() {
-    isGameOver = true;
-    alert("Game Quit! Your final score: " + score);
-    resetGame();
+function startMultiplayer() {
+    isMultiplayer = true;
+    menuScreen.style.display = "none";
+    gameArea.style.display = "block";
+    player2.style.display = "block"; // Show second player
+    startGame();
 }
 
-function resetGame() {
-    bullets.forEach(bullet => bullet.remove());
-    enemies.forEach(enemy => enemy.remove());
-    bullets = [];
-    enemies = [];
+function startGame() {
     score = 0;
     scoreDisplay.innerText = score;
-    playerPositionX = 180;
-    playerPositionY = 500;
-    updatePlayerPosition();
     isGameOver = false;
     isPaused = false;
-    pauseButton.innerText = "Pause";
+    bullets = [];
+    enemies = [];
+    updatePositions();
+    gameLoopInterval = setInterval(gameLoop, 20);
+    enemyInterval = setInterval(spawnEnemy, 1000);
 }
 
-function updatePlayerPosition() {
-    player.style.left = playerPositionX + "px";
-    player.style.top = playerPositionY + "px";
+document.addEventListener("keydown", (e) => {
+    if (isGameOver || isPaused) return;
+
+    // Player 1 controls (Arrow keys)
+    if (e.key === "ArrowLeft") player1Position.x -= 10;
+    if (e.key === "ArrowRight") player1Position.x += 10;
+    if (e.key === "ArrowUp") player1Position.y -= 10;
+    if (e.key === "ArrowDown") player1Position.y += 10;
+    if (e.key === " ") shootBullet(player1);
+
+    // Player 2 controls (WASD keys) in multiplayer
+    if (isMultiplayer) {
+        if (e.key === "a") player2Position.x -= 10;
+        if (e.key === "d") player2Position.x += 10;
+        if (e.key === "w") player2Position.y -= 10;
+        if (e.key === "s") player2Position.y += 10;
+        if (e.key === "Enter") shootBullet(player2);
+    }
+    updatePositions();
+});
+
+function updatePositions() {
+    player1.style.left = player1Position.x + "px";
+    player1.style.top = player1Position.y + "px";
+
+    if (isMultiplayer) {
+        player2.style.left = player2Position.x + "px";
+        player2.style.top = player2Position.y + "px";
+    }
 }
 
-function shootBullet() {
+// Shooting function for both players
+function shootBullet(player) {
     const bullet = document.createElement("div");
     bullet.classList.add("bullet");
-    bullet.style.left = playerPositionX + 17 + "px";
-    bullet.style.bottom = (600 - playerPositionY - 40) + "px";
+    bullet.style.left = player.offsetLeft + 15 + "px";
+    bullet.style.top = player.offsetTop + "px";
     gameArea.appendChild(bullet);
     bullets.push(bullet);
 }
 
-function createEnemy() {
+// Spawning enemies at random positions
+function spawnEnemy() {
     const enemy = document.createElement("div");
     enemy.classList.add("enemy");
-    enemy.style.left = Math.floor(Math.random() * 360) + "px";
+    enemy.style.left = Math.random() * (gameArea.offsetWidth - 40) + "px";
     enemy.style.top = "0px";
     gameArea.appendChild(enemy);
     enemies.push(enemy);
 }
 
-function moveEnemies() {
+// Game loop
+function gameLoop() {
+    if (isGameOver || isPaused) return;
+
+    // Move bullets
+    bullets.forEach((bullet, index) => {
+        bullet.style.top = bullet.offsetTop - 8 + "px";
+        if (bullet.offsetTop < 0) {
+            bullet.remove();
+            bullets.splice(index, 1);
+        }
+    });
+
+    // Move enemies
     enemies.forEach((enemy, index) => {
-        let enemyTop = parseInt(enemy.style.top);
-        if (enemyTop >= 560) {
-            gameArea.removeChild(enemy);
+        enemy.style.top = enemy.offsetTop + 4 + "px";
+        if (enemy.offsetTop > gameArea.offsetHeight) {
+            enemy.remove();
             enemies.splice(index, 1);
-        } else {
-            enemy.style.top = enemyTop + 2 + "px";
+            gameOver();
         }
 
-        const playerRect = player.getBoundingClientRect();
-        const enemyRect = enemy.getBoundingClientRect();
-        if (
-            playerRect.left < enemyRect.left + enemyRect.width &&
-            playerRect.left + playerRect.width > enemyRect.left &&
-            playerRect.top < enemyRect.top + enemyRect.height &&
-            playerRect.top + playerRect.height > enemyRect.top
-        ) {
+        // Check for collision with bullets
+        bullets.forEach((bullet, bIndex) => {
+            if (isColliding(bullet, enemy)) {
+                bullet.remove();
+                bullets.splice(bIndex, 1);
+                enemy.remove();
+                enemies.splice(index, 1);
+                updateScore();
+            }
+        });
+
+        // Check for collision with player
+        if (isColliding(player1, enemy) || (isMultiplayer && isColliding(player2, enemy))) {
             gameOver();
         }
     });
 }
 
-function moveBullets() {
-    bullets.forEach((bullet, index) => {
-        let bulletBottom = parseInt(bullet.style.bottom);
-        if (bulletBottom >= 600) {
-            gameArea.removeChild(bullet);
-            bullets.splice(index, 1);
-        } else {
-            bullet.style.bottom = bulletBottom + 5 + "px";
-        }
-    });
+// Check for collision between two elements
+function isColliding(el1, el2) {
+    const rect1 = el1.getBoundingClientRect();
+    const rect2 = el2.getBoundingClientRect();
+    return (
+        rect1.left < rect2.right &&
+        rect1.right > rect2.left &&
+        rect1.top < rect2.bottom &&
+        rect1.bottom > rect2.top
+    );
 }
 
-function checkCollisions() {
-    bullets.forEach((bullet, bIndex) => {
-        enemies.forEach((enemy, eIndex) => {
-            const bulletRect = bullet.getBoundingClientRect();
-            const enemyRect = enemy.getBoundingClientRect();
-
-            if (
-                bulletRect.left < enemyRect.left + enemyRect.width &&
-                bulletRect.left + bulletRect.width > enemyRect.left &&
-                bulletRect.top < enemyRect.top + enemyRect.height &&
-                bulletRect.top + bulletRect.height > enemyRect.top
-            ) {
-                gameArea.removeChild(bullet);
-                gameArea.removeChild(enemy);
-                bullets.splice(bIndex, 1);
-                enemies.splice(eIndex, 1);
-                score += 10;
-                scoreDisplay.innerText = score;
-            }
-        });
-    });
+// Update score
+function updateScore() {
+    score++;
+    scoreDisplay.innerText = score;
 }
 
-function movePlayer() {
-    if (keysPressed.ArrowLeft && playerPositionX > 0) {
-        playerPositionX -= moveSpeed;
+// Pause and unpause the game
+function togglePause() {
+    isPaused = !isPaused;
+    if (isPaused) {
+        clearInterval(gameLoopInterval);
+        clearInterval(enemyInterval);
+    } else {
+        gameLoopInterval = setInterval(gameLoop, 20);
+        enemyInterval = setInterval(spawnEnemy, 1000);
     }
-    if (keysPressed.ArrowRight && playerPositionX < 360) {
-        playerPositionX += moveSpeed;
-    }
-    if (keysPressed.ArrowUp && playerPositionY > 0) {
-        playerPositionY -= moveSpeed;
-    }
-    if (keysPressed.ArrowDown && playerPositionY < 560) {
-        playerPositionY += moveSpeed;
-    }
-    updatePlayerPosition();
 }
 
-function gameOver() {
-    isGameOver = true;
-    alert("Game Over! Your Score: " + score);
+// Quit the game and return to menu
+function quitGame() {
+    clearInterval(gameLoopInterval);
+    clearInterval(enemyInterval);
     resetGame();
 }
 
-function gameLoop() {
-    if (!isGameOver && !isPaused) {
-        movePlayer();
-        moveBullets();
-        moveEnemies();
-        checkCollisions();
-        if (Math.random() < 0.02) {
-            createEnemy();
-        }
-        requestAnimationFrame(gameLoop);
-    }
+// Game over function
+function gameOver() {
+    isGameOver = true;
+    alert("Game Over! Final Score: " + score);
+    quitGame();
 }
 
-updatePlayerPosition();
-gameLoop();
+// Reset game and return to main menu
+function resetGame() {
+    player1Position = { x: 180, y: 500 };
+    player2Position = { x: 220, y: 500 };
+    updatePositions();
+    bullets.forEach((bullet) => bullet.remove());
+    enemies.forEach((enemy) => enemy.remove());
+    bullets = [];
+    enemies = [];
+    score = 0;
+    scoreDisplay.innerText = score;
+    gameArea.style.display = "none";
+    menuScreen.style.display = "flex";
+}
